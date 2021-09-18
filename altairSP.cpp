@@ -116,6 +116,7 @@ bool checkXY(int x, int y, int row, int column) {
 	return false;
 }
 
+// 행, 열 값을 전달하기 위한 구조체
 struct RowColSet {
 	int row;
 	int column;
@@ -138,12 +139,19 @@ RowColSet xyToRowColumn(int x, int y) {
 // 전반적인 퍼즐의 상태를 조정하는 핸들러 클래스.
 class PuzzleHandler {
 private:
+	// 퍼즐의 배경. 퍼즐 조각들이 있는 부분을 하얗게 설정하였다. 
 	bangtal::ScenePtr PuzzleBackground;
+
+	// 퍼즐 조각 객체 배열
 	Piece piece[PUZZLE_SIZE][PUZZLE_SIZE];
+
+	// 해당 칸에 퍼즐 조각이 존재하는지 여부를 표시하는 플래그 배열
 	bool isPieceExist[PUZZLE_SIZE][PUZZLE_SIZE];
-	int emptySpace;
+
+	// 게임이 끝났는지 체크하는 플래그
 	bool isGameEnd = false;
 
+	// 움직임 횟수 카운터
 	int moveCount = 0;
 
 public:
@@ -182,6 +190,7 @@ public:
 		PuzzleMouseChecker->setOnMouseCallback([&](auto object, int x, int y, auto action)->bool {
 			if (isGameEnd == false) {
 				UpdatePieces();
+
 				RowColSet curRowCol = xyToRowColumn(x, y);
 
 				for (int i = 0; i < PUZZLE_SIZE; i++) {
@@ -195,10 +204,13 @@ public:
 						}
 					}
 				}
+				// 클리어 체크
 				CheckWin();
 			}
 			return true;
 			});
+
+		// 재시작 버튼 구현
 		auto restartButton = Object::create("images/RestartButton.png", PuzzleBackground, INIT_X + PIECE_SIZE * 5 + 50, INIT_Y + PIECE_SIZE * 3 + 50);
 		restartButton->setScale(0.03f);
 		restartButton->setOnMouseCallback([&](auto object, int x, int y, auto action)->bool {
@@ -206,6 +218,7 @@ public:
 			return true;
 			});
 
+		// 움짐임 횟수 카운터 버튼 구현
 		auto checkMoveCountButton = Object::create("images/CheckMoveCount.png", PuzzleBackground, INIT_X + PIECE_SIZE * 5 + 50, INIT_Y + PIECE_SIZE * 3);
 		checkMoveCountButton->setScale(0.6f);
 		checkMoveCountButton->setOnMouseCallback([&](auto object, int x, int y, auto action)->bool {
@@ -215,7 +228,7 @@ public:
 	};
 
 	// 현재 퍼즐 판에 존재하는 모든 퍼즐들의 상태를 업데이트하는 함수. 
-	// 인접한 빈칸의 방향 값을 업데이트한다. 
+	// 각 칸에 빈칸이 인접한다면 인접한 빈칸의 방향 값을 업데이트한다. 
 	bool UpdatePieces() {
 		int emptyRow, emptyColumn;
 
@@ -292,16 +305,13 @@ public:
 		return true;
 	}
 
-	bool CheckMove() {
-
-	}
-
 	// 퍼즐 조각들을 섞는 함수.
 	bool Shuffle() {
 		moveCount = 0;
 
 		PuzzleBackground->enter();
 
+		// 섞는 횟수
 		int shuffleCount = 600;
 
 		RowColSet empty;
@@ -314,6 +324,7 @@ public:
 			}
 		}
 
+		// 빈칸에 대한 무작위적인 방향으로 섞는다. 
 		int direction = 0;
 		for (int i = 0; i < shuffleCount; i++) {
 			while (true) {\
@@ -335,7 +346,9 @@ public:
 				}
 				break;
 			}
+
 			UpdatePieces();
+
 			switch (direction) {
 			case 1:
 				getPieseWithRowCol(empty.row, empty.column - 1)->Move(PuzzleBackground);
@@ -370,7 +383,6 @@ public:
 				exit(1);
 			}
 		}
-
 		return true;
 	}
 };
@@ -384,9 +396,11 @@ int main() {
 	auto Title = Object::create("images/Title.png", TitleBackground, 280, 240);
 	auto StartButton = Object::create("images/StartButton.png", TitleBackground, 310, 70);
 
-	StartButton->setScale(0.3f);
+	// 퍼즐의 전체적인 동작과 상황을 관리하는 핸들러 객체
 	PuzzleHandler handler;
 
+	// 시작버튼 구현
+	StartButton->setScale(0.3f);
 	StartButton->setOnMouseCallback([&](auto object, int x, int y, auto action) -> bool {
 		Title->hide();
 		StartButton->hide();
