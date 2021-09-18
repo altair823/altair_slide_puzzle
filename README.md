@@ -4,11 +4,13 @@
 
 ### 게임 화면
 
-준비 중
+![시작화면](C:\Users\rlaxo\source\repos\altairSP\readme_image\시작화면.PNG)
+
+![게임화면](C:\Users\rlaxo\source\repos\altairSP\readme_image\게임화면.PNG)
 
 ### 원본 사진
 
-준비 중
+![OriginalImage](C:\Users\rlaxo\source\repos\altairSP\readme_image\OriginalImage.png)
 
 ### License
 
