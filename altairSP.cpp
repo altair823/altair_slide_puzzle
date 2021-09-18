@@ -1,5 +1,6 @@
 ﻿#include <bangtal>
 #include <random>
+#include <string>
 
 using namespace bangtal;
 
@@ -68,24 +69,33 @@ public:
 			pieceObject->locate(PuzzleBackground, xCoord, yCoord + PIECE_SIZE);
 			yCoord += PIECE_SIZE;
 			column--;
+			emptyDir = NOT_EMPTY;
+			return true;
 		}
 		else if (emptyDir == DOWN) {
 			pieceObject->locate(PuzzleBackground, xCoord, yCoord - PIECE_SIZE);
 			yCoord -= PIECE_SIZE;
 			column++;
+			emptyDir = NOT_EMPTY;
+			return true;
 		}
 		else if (emptyDir == LEFT) {
 			pieceObject->locate(PuzzleBackground, xCoord - PIECE_SIZE, yCoord);
 			xCoord -= PIECE_SIZE;
 			row--;
+			emptyDir = NOT_EMPTY;
+			return true;
 		}
 		else if (emptyDir == RIGHT) {
 			pieceObject->locate(PuzzleBackground, xCoord + PIECE_SIZE, yCoord);
 			xCoord += PIECE_SIZE;
 			row++;
+			emptyDir = NOT_EMPTY;
+			return true;
 		}
-		emptyDir = NOT_EMPTY;
-		return true;
+		else {
+			return false;
+		}
 	}
 
 	int getRow() {
@@ -132,6 +142,9 @@ private:
 	Piece piece[PUZZLE_SIZE][PUZZLE_SIZE];
 	bool isPieceExist[PUZZLE_SIZE][PUZZLE_SIZE];
 	int emptySpace;
+	bool isGameEnd = false;
+
+	int moveCount = 0;
 
 public:
 	PuzzleHandler() {
@@ -141,7 +154,6 @@ public:
 				j = true;
 			}
 		}
-
 		// 퍼즐 배경과 조각들 생성.
 		PuzzleBackground = Scene::create("퍼즐배경", "images/background.png");
 		piece[0][0] = Piece("images/Puzzle1-1.png", PuzzleBackground, 1, 1);
@@ -168,26 +180,36 @@ public:
 
 		// 클릭 시 퍼즐 조각 이동
 		PuzzleMouseChecker->setOnMouseCallback([&](auto object, int x, int y, auto action)->bool {
-			UpdatePieces();
-			RowColSet curRowCol = xyToRowColumn(x, y);
+			if (isGameEnd == false) {
+				UpdatePieces();
+				RowColSet curRowCol = xyToRowColumn(x, y);
 
-			for (int i = 0; i < PUZZLE_SIZE; i++) {
-				for (int j = 0; j < PUZZLE_SIZE; j++) {
-					if (curRowCol.row == piece[i][j].getRow() && curRowCol.column == piece[i][j].getColumn()) {
-						piece[i][j].Move(PuzzleBackground);
-						isPieceExist[curRowCol.column - 1][curRowCol.row - 1] = false;
-						isPieceExist[piece[i][j].getColumn() - 1][piece[i][j].getRow() - 1] = true;
+				for (int i = 0; i < PUZZLE_SIZE; i++) {
+					for (int j = 0; j < PUZZLE_SIZE; j++) {
+						if (curRowCol.row == piece[i][j].getRow() && curRowCol.column == piece[i][j].getColumn()) {
+							if (piece[i][j].Move(PuzzleBackground) == true) {
+								isPieceExist[curRowCol.column - 1][curRowCol.row - 1] = false;
+								isPieceExist[piece[i][j].getColumn() - 1][piece[i][j].getRow() - 1] = true;
+								moveCount++;
+							}
+						}
 					}
 				}
+				CheckWin();
 			}
-			CheckWin();
-
 			return true;
 			});
 		auto restartButton = Object::create("images/RestartButton.png", PuzzleBackground, INIT_X + PIECE_SIZE * 5 + 50, INIT_Y + PIECE_SIZE * 3 + 50);
 		restartButton->setScale(0.03f);
 		restartButton->setOnMouseCallback([&](auto object, int x, int y, auto action)->bool {
 			Shuffle();
+			return true;
+			});
+
+		auto checkMoveCountButton = Object::create("images/CheckMoveCount.png", PuzzleBackground, INIT_X + PIECE_SIZE * 5 + 50, INIT_Y + PIECE_SIZE * 3);
+		checkMoveCountButton->setScale(0.6f);
+		checkMoveCountButton->setOnMouseCallback([&](auto object, int x, int y, auto action)->bool {
+			showMessage("움직인 횟수: " + std::to_string(moveCount));
 			return true;
 			});
 	};
@@ -265,12 +287,19 @@ public:
 				}
 			}
 		}
-		showMessage("우승!");
+		showMessage("클리어! \n움직인 횟수: " + std::to_string(moveCount));
+		isGameEnd = true;
 		return true;
+	}
+
+	bool CheckMove() {
+
 	}
 
 	// 퍼즐 조각들을 섞는 함수.
 	bool Shuffle() {
+		moveCount = 0;
+
 		PuzzleBackground->enter();
 
 		int shuffleCount = 600;
