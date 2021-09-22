@@ -16,6 +16,10 @@ using namespace bangtal;
 
 #define NOT_EMPTY 0
 
+auto TitleBackground = Scene::create("타이틀배경", "images/OriginalImage.png");
+auto Title = Object::create("images/Title.png", TitleBackground, 280, 240);
+auto StartButton = Object::create("images/StartButton.png", TitleBackground, 310, 70);
+
 // 퍼즐 조각 클래스
 class Piece {
 	
@@ -302,17 +306,23 @@ public:
 		}
 		showMessage("클리어! \n움직인 횟수: " + std::to_string(moveCount));
 		isGameEnd = true;
+
+		// 게임을 클리어하면 초기 화면으로 돌아감
+		TitleBackground->enter();
+		Title->show();
+		StartButton->show();
 		return true;
 	}
 
 	// 퍼즐 조각들을 섞는 함수.
 	bool Shuffle() {
+		isGameEnd = false;
 		moveCount = 0;
 
 		PuzzleBackground->enter();
 
 		// 섞는 횟수
-		int shuffleCount = 600;
+		int shuffleCount = 400;
 
 		RowColSet empty;
 		for (int i = 0; i < PUZZLE_SIZE; i++) {
@@ -385,6 +395,11 @@ public:
 		}
 		return true;
 	}
+
+	// 게임의 상태를 반환하는 함수
+	bool getGameStatus() {
+		return isGameEnd;
+	}
 };
 
 int main() {
@@ -392,9 +407,6 @@ int main() {
 	setGameOption(GameOption::GAME_OPTION_MESSAGE_BOX_BUTTON, false);
 	setGameOption(GameOption::GAME_OPTION_ROOM_TITLE, false);
 
-	auto TitleBackground = Scene::create("타이틀배경", "images/OriginalImage.png");
-	auto Title = Object::create("images/Title.png", TitleBackground, 280, 240);
-	auto StartButton = Object::create("images/StartButton.png", TitleBackground, 310, 70);
 
 	// 퍼즐의 전체적인 동작과 상황을 관리하는 핸들러 객체
 	PuzzleHandler handler;
@@ -407,6 +419,11 @@ int main() {
 		handler.Shuffle();
 		return true;
 		});
+	if (handler.getGameStatus()) {
+		Title->show();
+		StartButton->show();
+	}
+
 
 	startGame(TitleBackground);
 }
